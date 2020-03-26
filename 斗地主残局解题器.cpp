@@ -1,30 +1,7 @@
 #include<stdio.h>
 #include<conio.h>
+#include<time.h>
 int same(int p[],int plen)
-{
-	int i;
-	int s[15];
-	for(i=1;i<=14;i++)
-	{
-		s[i]=0;
-	}
-	for(i=0;i<plen;i++)
-	{
-		if(p[i]==15) s[14]++;
-		else s[p[i]]++;
-	}
-	int max1,max2=0;
-	for(i=1;i<=14;i++)
-	{
-		if(s[i]>max2)
-		{
-			max1=i;
-			max2=s[i];
-		}
-	}
-	return max1*10+max2;
-}
-int same2(int p[],int plen)
 {
 	int i;
 	int s[16];
@@ -54,6 +31,10 @@ int paixing(int p[],int plen)
 	if(n%10==1)
 	{
 		if(plen==1) return 1;
+		else if(plen==2)
+		{
+			if(p[1]==14&&p[0]==15) return 21;
+		}
 		else if(plen>=5&&p[0]<=12)
 		{
 			for(int i=0;i<plen-1;i++)
@@ -67,8 +48,7 @@ int paixing(int p[],int plen)
 	{
 		if(plen==2)
 		{
-			if(p[0]==p[1]) return 2;
-			else if(p[1]==14&&p[0]==15) return 21;
+			return 2;
 		}
 		else if(plen%2==0&&plen>=6&&p[0]<=12)
 		{
@@ -200,7 +180,7 @@ bool canout(int p[],int plen,int l[],int llen)
 		return 1;
 	}
 	if(a!=b&&a!=4&&a!=21) return 0;
-	int c=same2(p,plen),d=same2(l,llen);
+	int c=same(p,plen),d=same(l,llen);
 	if(c/10<=d/10&&a!=4&&a!=21) return 0;
 	return 1;
 }
@@ -220,9 +200,10 @@ bool canout(int p[],int plen,int l[],int llen)
 0:不能这样出
 -1:不出 
 */
+const int hand=20;
 struct cal{
 	int winner;
-	int move[25][15];
+	int move[25][hand];
 	int move2[25];
 	int move3;
 };
@@ -278,7 +259,7 @@ cal CLHAI_1_0(int p1[],int p1len,int p2[],int p2len,int l[],int llen,int deep,bo
 		first.move3=deep;
 		return first;
 	}
-	int new1[15],new1len; 
+	int new1[hand],new1len; 
 	if(now)
 	{
 		if(canout(p2,p2len,l,llen))
@@ -326,8 +307,8 @@ cal CLHAI_1_0(int p1[],int p1len,int p2[],int p2len,int l[],int llen,int deep,bo
 	first.winner=0;
 	first.move3=deep+1;
 	const int n=100;
-	int returned[n][15],relen[n],renum=0;
-	int returned2[n][15];
+	int returned[n][hand],relen[n],renum=0;
+	int returned2[n][hand];
 	if(now)
 	{
 		for(i=1;i<pow1(2,p2len);i++)
@@ -380,7 +361,7 @@ cal CLHAI_1_0(int p1[],int p1len,int p2[],int p2len,int l[],int llen,int deep,bo
 	{
 		for(i=1;i<pow1(2,p1len);i++)
 		{
-			int u[15],ulen=0;
+			int u[hand],ulen=0;
 			int u1=i;
 			for(int u1len=0;u1len<p1len;u1len++)
 			{
@@ -433,9 +414,12 @@ cal CLHAI_1_0(int p1[],int p1len,int p2[],int p2len,int l[],int llen,int deep,bo
 	for(i=0;i<renum;i++)
 	{
 		node++;
-		if(deep<=5)
-		printf("%d %d/%d node %lld\n",deep,i+1,renum,node);
-		int new2[15],j;
+		if(deep<=3)
+		{
+			if(node==1) printf("%d %d/%d node %lld\n",deep,i+1,renum,node);
+			else printf("%d %d/%d nodes %lld\n",deep,i+1,renum,node);
+		}
+		int new2[hand],j;
 		for(j=0;j<new1len;j++)
 		{
 			new2[j]=new1[j];
@@ -448,7 +432,7 @@ cal CLHAI_1_0(int p1[],int p1len,int p2[],int p2len,int l[],int llen,int deep,bo
 				}
 			}
 		}
-		int new3[15],new3len=0;
+		int new3[hand],new3len=0;
 		for(j=0;j<new1len;j++)
 		{
 			if(new2[j]!=0)
@@ -551,6 +535,7 @@ JOKER:14/15
 */
 int main()
 {
+	int endc,startc;
 	int i,j;
 	int p1[16]={11,11,3,3,2,1},p2[16]={13,13,3,3,2,1},l[16]={0},p1len=13,p2len=9,llen=0;
 	printf("斗地主残局解题器\n");
@@ -596,7 +581,9 @@ int main()
 		}
 		printf("\n");
 		printf("\n正在计算……\n\n");
+		startc=clock();
 		cal st=CLHAI_1_0(p1,p1len,p2,p2len,l,llen,0,0);
+		endc=clock();
 		print(st);
 		llen=st.move2[0];
 		for(i=0;i<st.move2[0];i++)
@@ -614,7 +601,7 @@ int main()
 				}
 			}
 		}
-		int new3[15],new3len=0;
+		int new3[hand],new3len=0;
 		for(j=0;j<p1len;j++)
 		{
 			if(p1[j]!=0)
@@ -628,6 +615,7 @@ int main()
 		{
 			p1[j]=new3[j];
 		}
+		printf("计算完毕，用时%.2lf秒，变化数%lld\n",(endc-startc)/1000.0,node);
 		printf("\nP1牌：");
 		for(j=0;j<p1len;j++)
 		{
@@ -646,7 +634,7 @@ int main()
 		}
 		printf("\n\n");
 		if(p1len==0) break;
-		int l2[15],l2len=llen;
+		int l2[hand],l2len=llen;
 		for(i=0;i<llen;i++)
 		{
 			l2[i]=l[i];
