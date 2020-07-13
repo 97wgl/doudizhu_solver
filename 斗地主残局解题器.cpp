@@ -1,6 +1,8 @@
 #include<stdio.h>
+#include<string.h>
 #include<conio.h>
 #include<time.h>
+#include<stdlib.h>
 int same(int p[],int plen)
 {
 	int i;
@@ -200,11 +202,13 @@ bool canout(int p[],int plen,int l[],int llen)
 0:不能这样出
 -1:不出 
 */
-const int hand=20;
+const int hand=30;
+const int n=100;
+const int d=50;
 struct cal{
 	int winner;
-	int move[25][hand];
-	int move2[25];
+	int move[d][hand];
+	int move2[d];
 	int move3;
 };
 char name[16][10]={"不出","3","4","5","6","7","8","9","10","J","Q","K","A","2","小王","大王"};
@@ -229,24 +233,26 @@ void print(cal a)
 	else if(a.winner<=1) printf("  P2赢\n");
 }
 long long node=0;
-long long pow1(int a,int b)
+int pow1(int a,int b)
 {
-	long long c=1;
+	int c=1;
 	for(int i=1;i<=b;i++)
 	{
-		c*=a;
+		c<<=1;
 	}
 	return c;
 }
+int endc,startc;
 cal CLHAI_1_0(int p1[],int p1len,int p2[],int p2len,int l[],int llen,int deep,bool now)
 {
+	if(!paixing(l,llen)&&llen)
+	{
+		printf("\n非法出错！程序异常停止！请按任意键退出程序！");
+		getch();
+		exit(250);
+	}
 	int i;
 	cal first;
-	/*
-	for(i=0;i<25;i++)
-	{
-		first.move2[i]=-1;
-	}*/
 	if(p1len==0)
 	{
 		first.winner=1;
@@ -267,10 +273,7 @@ cal CLHAI_1_0(int p1[],int p1len,int p2[],int p2len,int l[],int llen,int deep,bo
 			first.winner=-1;
 			first.move2[deep]=p2len;
 			first.move3=deep+1;
-			for(int i=0;i<p2len;i++)
-			{
-				first.move[deep][i]=p2[i];
-			}
+			memcpy(first.move[deep],p2,p2len*4);
 			return first;
 		}
 	}
@@ -281,39 +284,29 @@ cal CLHAI_1_0(int p1[],int p1len,int p2[],int p2len,int l[],int llen,int deep,bo
 			first.winner=1;
 			first.move2[deep]=p1len;
 			first.move3=deep+1;
-			for(int i=0;i<p1len;i++)
-			{
-				first.move[deep][i]=p1[i];
-			}
+			memcpy(first.move[deep],p1,p1len*4);
 			return first;
 		}
 	}
 	if(now)
 	{
-		for(i=0;i<p2len;i++)
-		{
-			new1[i]=p2[i];
-		}
 		new1len=p2len;
+		memcpy(new1,p2,p2len*4);
 	}
 	else
 	{
-		for(i=0;i<p1len;i++)
-		{
-			new1[i]=p1[i];
-		}
 		new1len=p1len;
+		memcpy(new1,p1,p1len*4);
 	}
 	first.winner=0;
 	first.move3=deep+1;
-	const int n=100;
 	int returned[n][hand],relen[n],renum=0;
 	int returned2[n][hand];
 	if(now)
 	{
 		for(i=1;i<pow1(2,p2len);i++)
 		{
-			int u[30],ulen=0;
+			int u[hand],ulen=0;
 			int u1=i;
 			for(int u1len=0;u1len<p2len;u1len++)
 			{
@@ -322,7 +315,7 @@ cal CLHAI_1_0(int p1[],int p1len,int p2[],int p2len,int l[],int llen,int deep,bo
 					u[ulen]=p2[u1len];
 					ulen++;
 				}
-				u1/=2;
+				u1>>=1;
 			}
 			if(canout(u,ulen,l,llen))
 			{
@@ -348,10 +341,8 @@ cal CLHAI_1_0(int p1[],int p1len,int p2[],int p2len,int l[],int llen,int deep,bo
 				if(jj)
 				{
 					relen[renum]=ulen;
-					for(int j1=0;j1<ulen;j1++)
-					{
-						returned2[renum][j1]=returned[renum][j1]=u[j1];
-					}
+					memcpy(returned2[renum],u,ulen*4);
+					memcpy(returned[renum],u,ulen*4);
 					renum++;
 				}
 			}
@@ -370,7 +361,7 @@ cal CLHAI_1_0(int p1[],int p1len,int p2[],int p2len,int l[],int llen,int deep,bo
 					u[ulen]=p1[u1len];
 					ulen++;
 				}
-				u1/=2;
+				u1>>=1;
 			}
 			if(canout(u,ulen,l,llen))
 			{
@@ -396,10 +387,8 @@ cal CLHAI_1_0(int p1[],int p1len,int p2[],int p2len,int l[],int llen,int deep,bo
 				if(jj)
 				{
 					relen[renum]=ulen;
-					for(int j1=0;j1<ulen;j1++)
-					{
-						returned2[renum][j1]=returned[renum][j1]=u[j1];
-					}
+					memcpy(returned2[renum],u,ulen*4);
+					memcpy(returned[renum],u,ulen*4);
 					renum++;
 				}
 			}
@@ -413,43 +402,41 @@ cal CLHAI_1_0(int p1[],int p1len,int p2[],int p2len,int l[],int llen,int deep,bo
 	first.winner=0;
 	for(i=0;i<renum;i++)
 	{
+		endc=clock();
 		node++;
 		if(deep<=3)
 		{
 			if(node==1) printf("%d %d/%d node %lld\n",deep,i+1,renum,node);
-			else printf("%d %d/%d nodes %lld\n",deep,i+1,renum,node);
+			else
+			{
+				if(endc-startc>=5) printf("%d %d/%d nodes %lld time %.2lfs speed %.0lf\n",deep,i+1,renum,node,0.001*(endc-startc),1000.0*node/(endc-startc));
+				else printf("%d %d/%d nodes %lld\n",deep,i+1,renum,node);
+			}
 		}
-		int new2[hand],j;
+		int new2[hand],j,new2len=0;
 		for(j=0;j<new1len;j++)
 		{
-			new2[j]=new1[j];
-			for(int k=0;k<relen[i];k++)
+			bool b=1;
+			for(int i1=0;i1<relen[i];i1++)
 			{
-				if(returned[i][k]==new2[j])
+				if(new1[j]==returned[i][i1])
 				{
-					returned[i][k]=new2[j]=0;
+					b=0;
+					returned[i][i1]=0;
 					break;
 				}
 			}
-		}
-		int new3[hand],new3len=0;
-		for(j=0;j<new1len;j++)
-		{
-			if(new2[j]!=0)
+			if(b)
 			{
-				new3[new3len]=new2[j];
-				new3len++;
+				new2[new2len++]=new1[j];
 			}
 		}
 		cal cmp;
 		if(now)
 		{
-			cmp=CLHAI_1_0(p1,p1len,new3,new3len,returned2[i],relen[i],deep+1,!now);
+			cmp=CLHAI_1_0(p1,p1len,new2,new2len,returned2[i],relen[i],deep+1,!now);
 			cmp.move2[deep]=relen[i];
-			for(int a3=0;a3<relen[i];a3++)
-			{
-				cmp.move[deep][a3]=returned2[i][a3];
-			}
+			memcpy(cmp.move[deep],returned2[i],relen[i]*4);
 			if(first.winner==0)
 			{
 				first.winner=cmp.winner;
@@ -457,10 +444,7 @@ cal CLHAI_1_0(int p1[],int p1len,int p2[],int p2len,int l[],int llen,int deep,bo
 				for(int a1=0;a1<cmp.move3;a1++)
 				{
 					first.move2[a1]=cmp.move2[a1];
-					for(int a2=0;a2<cmp.move2[a1];a2++)
-					{
-						first.move[a1][a2]=cmp.move[a1][a2];
-					}
+					memcpy(first.move[a1],cmp.move[a1],first.move2[a1]*4);
 				}
 			}
 			else if(cmp.winner==-1)
@@ -470,22 +454,16 @@ cal CLHAI_1_0(int p1[],int p1len,int p2[],int p2len,int l[],int llen,int deep,bo
 				for(int a1=0;a1<cmp.move3;a1++)
 				{
 					first.move2[a1]=cmp.move2[a1];
-					for(int a2=0;a2<cmp.move2[a1];a2++)
-					{
-						first.move[a1][a2]=cmp.move[a1][a2];
-					}
+					memcpy(first.move[a1],cmp.move[a1],first.move2[a1]*4);
 				}
 				return first;
 			}
 		}
 		else
 		{
-			cmp=CLHAI_1_0(new3,new3len,p2,p2len,returned2[i],relen[i],deep+1,!now);
+			cmp=CLHAI_1_0(new2,new2len,p2,p2len,returned2[i],relen[i],deep+1,!now);
 			cmp.move2[deep]=relen[i];
-			for(int a3=0;a3<relen[i];a3++)
-			{
-				cmp.move[deep][a3]=returned2[i][a3];
-			}
+			memcpy(cmp.move[deep],returned2[i],relen[i]*4);
 			if(first.winner==0)
 			{
 				first.winner=cmp.winner;
@@ -493,10 +471,7 @@ cal CLHAI_1_0(int p1[],int p1len,int p2[],int p2len,int l[],int llen,int deep,bo
 				for(int a1=0;a1<cmp.move3;a1++)
 				{
 					first.move2[a1]=cmp.move2[a1];
-					for(int a2=0;a2<cmp.move2[a1];a2++)
-					{
-						first.move[a1][a2]=cmp.move[a1][a2];
-					}
+					memcpy(first.move[a1],cmp.move[a1],first.move2[a1]*4);
 				}
 			}
 			else if(cmp.winner==1)
@@ -506,10 +481,7 @@ cal CLHAI_1_0(int p1[],int p1len,int p2[],int p2len,int l[],int llen,int deep,bo
 				for(int a1=0;a1<cmp.move3;a1++)
 				{
 					first.move2[a1]=cmp.move2[a1];
-					for(int a2=0;a2<cmp.move2[a1];a2++)
-					{
-						first.move[a1][a2]=cmp.move[a1][a2];
-					}
+					memcpy(first.move[a1],cmp.move[a1],first.move2[a1]*4);
 				}
 				return first;
 			}
@@ -535,9 +507,9 @@ JOKER:14/15
 */
 int main()
 {
-	int endc,startc;
-	int i,j;
-	int p1[16]={11,11,3,3,2,1},p2[16]={13,13,3,3,2,1},l[16]={0},p1len=13,p2len=9,llen=0;
+	int i,j,count=0;
+	int p1[16]={0},p2[16]={0},l[16]={0},p1len=2,p2len=2,llen=0;
+	system("title 斗地主残局解题器"); 
 	printf("斗地主残局解题器\n");
 	printf("输入P1牌数：");
 	scanf("%d",&p1len);
@@ -581,7 +553,7 @@ int main()
 		}
 		printf("\n");
 		printf("\n正在计算……\n\n");
-		startc=clock();
+		startc=endc=clock();
 		cal st=CLHAI_1_0(p1,p1len,p2,p2len,l,llen,0,0);
 		endc=clock();
 		print(st);
@@ -639,8 +611,16 @@ int main()
 		{
 			l2[i]=l[i];
 		}
+		count=0;
 		do
 		{
+			count++;
+			if(count>200)
+			{
+				printf("\n非法出错！程序异常停止！请按任意键退出程序！");
+				getch();
+				exit(250);
+			}
 			printf("请输入P2出牌数:");
 			scanf("%d",&llen);
 			if(llen!=0) printf("请输入P2出牌:");
